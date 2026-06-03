@@ -11,7 +11,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { isRedacted } from "@/lib/utils/validation";
 import { Info } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Control, UseFormReturn } from "react-hook-form";
+import { Control, FieldValues, Path, UseFormReturn } from "react-hook-form";
 
 // Providers that support batch APIs
 const BATCH_SUPPORTED_PROVIDERS = ["openai", "bedrock", "anthropic", "gemini", "azure"];
@@ -42,18 +42,18 @@ function normalizeAliasesValue(v: Record<string, string> | string | undefined | 
 	return {};
 }
 
-interface Props {
-	control: Control<any>;
+interface Props<T extends FieldValues = FieldValues> {
+	control: Control<T>;
 	providerName: string;
-	form: UseFormReturn<any>;
+	form: UseFormReturn<T>;
 }
 
 // Batch API form field for all providers
-function BatchAPIFormField({ control }: { control: Control<any>; form: UseFormReturn<any> }) {
+function BatchAPIFormField<T extends FieldValues = FieldValues>({ control }: { control: Control<T>; form: UseFormReturn<T> }) {
 	return (
 		<FormField
 			control={control}
-			name={`key.use_for_batch_api`}
+			name={"key.use_for_batch_api" as Path<T>}
 			render={({ field }) => (
 				<FormItem className="flex flex-row items-center justify-between rounded-sm border p-2">
 					<div className="space-y-1.5">
@@ -71,7 +71,7 @@ function BatchAPIFormField({ control }: { control: Control<any>; form: UseFormRe
 	);
 }
 
-export function ApiKeyFormFragment({ control, providerName, form }: Props) {
+export function ApiKeyFormFragment<T extends FieldValues = FieldValues>({ control, providerName, form }: Props<T>) {
 	const isBedrock = providerName === "bedrock";
 	const isVertex = providerName === "vertex";
 	const isAzure = providerName === "azure";
@@ -95,10 +95,10 @@ export function ApiKeyFormFragment({ control, providerName, form }: Props) {
 	useEffect(() => {
 		if (form.formState.isDirty) return;
 		if (isAzure) {
-			const clientId = form.getValues("key.azure_key_config.client_id");
-			const clientSecret = form.getValues("key.azure_key_config.client_secret");
-			const tenantId = form.getValues("key.azure_key_config.tenant_id");
-			const apiKey = form.getValues("key.value");
+			const clientId = form.getValues("key.azure_key_config.client_id" as Path<T>);
+			const clientSecret = form.getValues("key.azure_key_config.client_secret" as Path<T>);
+			const tenantId = form.getValues("key.azure_key_config.tenant_id" as Path<T>);
+			const apiKey = form.getValues("key.value" as Path<T>);
 			const hasEntraField =
 				clientId?.value || clientId?.env_var || clientSecret?.value || clientSecret?.env_var || tenantId?.value || tenantId?.env_var;
 			const hasApiKey = apiKey?.value || apiKey?.env_var;
@@ -109,17 +109,17 @@ export function ApiKeyFormFragment({ control, providerName, form }: Props) {
 				detected = "default_credential";
 			}
 			setAzureAuthType(detected);
-			form.setValue("key.azure_key_config._auth_type", detected);
+			form.setValue("key.azure_key_config._auth_type" as Path<T>, detected as never);
 		}
 	}, [isAzure, form]);
 
 	useEffect(() => {
 		if (form.formState.isDirty) return;
 		if (isVertex) {
-			const authCredentials = form.getValues("key.vertex_key_config.auth_credentials")?.value;
-			const authCredentialsEnv = form.getValues("key.vertex_key_config.auth_credentials")?.env_var;
-			const apiKey = form.getValues("key.value")?.value;
-			const apiKeyEnv = form.getValues("key.value")?.env_var;
+			const authCredentials = form.getValues("key.vertex_key_config.auth_credentials" as Path<T>)?.value;
+			const authCredentialsEnv = form.getValues("key.vertex_key_config.auth_credentials" as Path<T>)?.env_var;
+			const apiKey = form.getValues("key.value" as Path<T>)?.value;
+			const apiKeyEnv = form.getValues("key.value" as Path<T>)?.env_var;
 			let detected: "service_account" | "service_account_json" | "api_key" = "service_account";
 			if (authCredentials || authCredentialsEnv) {
 				detected = "service_account_json";
@@ -127,16 +127,16 @@ export function ApiKeyFormFragment({ control, providerName, form }: Props) {
 				detected = "api_key";
 			}
 			setVertexAuthType(detected);
-			form.setValue("key.vertex_key_config._auth_type", detected);
+			form.setValue("key.vertex_key_config._auth_type" as Path<T>, detected as never);
 		}
 	}, [isVertex, form]);
 
 	useEffect(() => {
 		if (form.formState.isDirty) return;
 		if (isBedrock) {
-			const accessKey = form.getValues("key.bedrock_key_config.access_key");
-			const secretKey = form.getValues("key.bedrock_key_config.secret_key");
-			const apiKey = form.getValues("key.value");
+			const accessKey = form.getValues("key.bedrock_key_config.access_key" as Path<T>);
+			const secretKey = form.getValues("key.bedrock_key_config.secret_key" as Path<T>);
+			const apiKey = form.getValues("key.value" as Path<T>);
 			const hasExplicitCreds = accessKey?.value || accessKey?.env_var || secretKey?.value || secretKey?.env_var;
 			const hasApiKey = apiKey?.value || apiKey?.env_var;
 			let detected: "iam_role" | "explicit" | "api_key" = "iam_role";
@@ -146,7 +146,7 @@ export function ApiKeyFormFragment({ control, providerName, form }: Props) {
 				detected = "api_key";
 			}
 			setBedrockAuthType(detected);
-			form.setValue("key.bedrock_key_config._auth_type", detected);
+			form.setValue("key.bedrock_key_config._auth_type" as Path<T>, detected as never);
 		}
 	}, [isBedrock, form]);
 
@@ -156,7 +156,7 @@ export function ApiKeyFormFragment({ control, providerName, form }: Props) {
 				<div className="flex-1">
 					<FormField
 						control={control}
-						name={`key.name`}
+						name={"key.name" as Path<T>}
 						render={({ field }) => (
 							<FormItem>
 								<FormLabel>Name</FormLabel>
@@ -170,7 +170,7 @@ export function ApiKeyFormFragment({ control, providerName, form }: Props) {
 				</div>
 				<FormField
 					control={control}
-					name={`key.weight`}
+					name={"key.weight" as Path<T>}
 					render={({ field }) => (
 						<FormItem>
 							<div className="flex items-center gap-2">
@@ -221,7 +221,7 @@ export function ApiKeyFormFragment({ control, providerName, form }: Props) {
 			{!isAzure && !isBedrock && !isVertex && (
 				<FormField
 					control={control}
-					name={`key.value`}
+					name={"key.value" as Path<T>}
 					render={({ field }) => (
 						<FormItem>
 							<FormLabel>API Key {isVLLM ? "(Optional)" : ""}</FormLabel>
@@ -237,8 +237,10 @@ export function ApiKeyFormFragment({ control, providerName, form }: Props) {
 				<>
 					<FormField
 						control={control}
-						name={`key.models`}
-						render={({ field }) => (
+						name={"key.models" as Path<T>}
+						render={({ field }) => {
+							const fieldValue = field.value as string[] | undefined;
+							return (
 							<FormItem>
 								<div className="flex items-center gap-2">
 									<FormLabel>Allowed Models</FormLabel>
@@ -262,9 +264,9 @@ export function ApiKeyFormFragment({ control, providerName, form }: Props) {
 										data-testid="api-keys-models-multiselect"
 										provider={providerName}
 										allowAllOption={true}
-										value={field.value || []}
+										value={fieldValue || []}
 										onChange={(models: string[]) => {
-											const hadStar = (field.value || []).includes("*");
+											const hadStar = (fieldValue || []).includes("*");
 											const hasStar = models.includes("*");
 											if (!hadStar && hasStar) {
 												field.onChange(["*"]);
@@ -275,9 +277,9 @@ export function ApiKeyFormFragment({ control, providerName, form }: Props) {
 											}
 										}}
 										placeholder={
-											(field.value || []).includes("*")
+											(fieldValue || []).includes("*")
 												? "All models allowed"
-												: (field.value || []).length === 0
+												: (fieldValue || []).length === 0
 													? "No models (deny all)"
 													: "Search models..."
 										}
@@ -286,12 +288,15 @@ export function ApiKeyFormFragment({ control, providerName, form }: Props) {
 								</FormControl>
 								<FormMessage />
 							</FormItem>
-						)}
+							);
+						}}
 					/>
 					<FormField
 						control={control}
-						name={`key.blacklisted_models`}
-						render={({ field }) => (
+						name={"key.blacklisted_models" as Path<T>}
+						render={({ field }) => {
+							const fieldValue = field.value as string[] | undefined;
+							return (
 							<FormItem data-testid="apikey-blacklisted-models-field">
 								<div className="flex items-center gap-2">
 									<FormLabel>Blocked Models</FormLabel>
@@ -316,9 +321,9 @@ export function ApiKeyFormFragment({ control, providerName, form }: Props) {
 										data-testid="api-keys-blocked-models-multiselect"
 										provider={providerName}
 										allowAllOption={true}
-										value={field.value || []}
+										value={fieldValue || []}
 										onChange={(models: string[]) => {
-											const hadStar = (field.value || []).includes("*");
+											const hadStar = (fieldValue || []).includes("*");
 											const hasStar = models.includes("*");
 											if (!hadStar && hasStar) {
 												field.onChange(["*"]);
@@ -329,9 +334,9 @@ export function ApiKeyFormFragment({ control, providerName, form }: Props) {
 											}
 										}}
 										placeholder={
-											(field.value || []).includes("*")
+											(fieldValue || []).includes("*")
 												? "All models blocked"
-												: (field.value || []).length === 0
+												: (fieldValue || []).length === 0
 													? "No models blocked"
 													: "Search models..."
 										}
@@ -340,11 +345,12 @@ export function ApiKeyFormFragment({ control, providerName, form }: Props) {
 								</FormControl>
 								<FormMessage />
 							</FormItem>
-						)}
+							);
+						}}
 					/>
 					<FormField
 						control={control}
-						name={`key.aliases`}
+						name={"key.aliases" as Path<T>}
 						render={({ field }) => (
 							<FormItem data-testid="apikey-aliases-field">
 								<FormLabel>Aliases (Optional)</FormLabel>
@@ -358,7 +364,7 @@ export function ApiKeyFormFragment({ control, providerName, form }: Props) {
 											label=""
 											value={normalizeAliasesValue(field.value)}
 											onChange={(next) => {
-												form.clearErrors("key.aliases");
+												form.clearErrors("key.aliases" as Path<T>);
 												field.onChange(Object.keys(next).length > 0 ? next : {});
 											}}
 											keyPlaceholder="Request model name"
@@ -393,17 +399,17 @@ export function ApiKeyFormFragment({ control, providerName, form }: Props) {
 							value={azureAuthType}
 							onValueChange={(v) => {
 								setAzureAuthType(v as "api_key" | "entra_id" | "default_credential");
-								form.setValue("key.azure_key_config._auth_type", v, { shouldDirty: true, shouldValidate: true });
+								form.setValue("key.azure_key_config._auth_type" as Path<T>, v as never, { shouldDirty: true, shouldValidate: true });
 								if (v === "entra_id" || v === "default_credential") {
 									// Clear API key when switching away from API Key
-									form.setValue("key.value", undefined, { shouldDirty: true });
+									form.setValue("key.value" as Path<T>, undefined as never, { shouldDirty: true });
 								}
 								if (v === "api_key" || v === "default_credential") {
 									// Clear Entra ID fields when switching away from Entra ID
-									form.setValue("key.azure_key_config.client_id", undefined, { shouldDirty: true });
-									form.setValue("key.azure_key_config.client_secret", undefined, { shouldDirty: true });
-									form.setValue("key.azure_key_config.tenant_id", undefined, { shouldDirty: true });
-									form.setValue("key.azure_key_config.scopes", undefined, { shouldDirty: true });
+									form.setValue("key.azure_key_config.client_id" as Path<T>, undefined as never, { shouldDirty: true });
+									form.setValue("key.azure_key_config.client_secret" as Path<T>, undefined as never, { shouldDirty: true });
+									form.setValue("key.azure_key_config.tenant_id" as Path<T>, undefined as never, { shouldDirty: true });
+									form.setValue("key.azure_key_config.scopes" as Path<T>, undefined as never, { shouldDirty: true });
 								}
 							}}
 						>
@@ -423,7 +429,7 @@ export function ApiKeyFormFragment({ control, providerName, form }: Props) {
 					{azureAuthType === "api_key" && (
 						<FormField
 							control={control}
-							name={`key.value`}
+							name={"key.value" as Path<T>}
 							render={({ field }) => (
 								<FormItem>
 									<FormLabel>
@@ -446,7 +452,7 @@ export function ApiKeyFormFragment({ control, providerName, form }: Props) {
 
 					<FormField
 						control={control}
-						name={`key.azure_key_config.endpoint`}
+						name={"key.azure_key_config.endpoint" as Path<T>}
 						render={({ field }) => (
 							<FormItem>
 								<FormLabel>Endpoint (Required)</FormLabel>
@@ -461,7 +467,7 @@ export function ApiKeyFormFragment({ control, providerName, form }: Props) {
 						<>
 							<FormField
 								control={control}
-								name={`key.azure_key_config.client_id`}
+								name={"key.azure_key_config.client_id" as Path<T>}
 								render={({ field }) => (
 									<FormItem>
 										<FormLabel>Client ID (Required)</FormLabel>
@@ -474,7 +480,7 @@ export function ApiKeyFormFragment({ control, providerName, form }: Props) {
 							/>
 							<FormField
 								control={control}
-								name={`key.azure_key_config.client_secret`}
+								name={"key.azure_key_config.client_secret" as Path<T>}
 								render={({ field }) => (
 									<FormItem>
 										<FormLabel>Client Secret (Required)</FormLabel>
@@ -487,7 +493,7 @@ export function ApiKeyFormFragment({ control, providerName, form }: Props) {
 							/>
 							<FormField
 								control={control}
-								name={`key.azure_key_config.tenant_id`}
+								name={"key.azure_key_config.tenant_id" as Path<T>}
 								render={({ field }) => (
 									<FormItem>
 										<FormLabel>Tenant ID (Required)</FormLabel>
@@ -500,7 +506,7 @@ export function ApiKeyFormFragment({ control, providerName, form }: Props) {
 							/>
 							<FormField
 								control={control}
-								name={`key.azure_key_config.scopes`}
+								name={"key.azure_key_config.scopes" as Path<T>}
 								render={({ field }) => (
 									<FormItem>
 										<div className="flex items-center gap-2">
@@ -547,14 +553,14 @@ export function ApiKeyFormFragment({ control, providerName, form }: Props) {
 							value={vertexAuthType}
 							onValueChange={(v) => {
 								setVertexAuthType(v as "service_account" | "service_account_json" | "api_key");
-								form.setValue("key.vertex_key_config._auth_type", v, { shouldDirty: true, shouldValidate: true });
+								form.setValue("key.vertex_key_config._auth_type" as Path<T>, v as never, { shouldDirty: true, shouldValidate: true });
 								if (v === "service_account" || v === "api_key") {
 									// Clear auth credentials when switching away from service account JSON
-									form.setValue("key.vertex_key_config.auth_credentials", undefined, { shouldDirty: true });
+									form.setValue("key.vertex_key_config.auth_credentials" as Path<T>, undefined as never, { shouldDirty: true });
 								}
 								if (v === "service_account" || v === "service_account_json") {
 									// Clear API key when switching away from API Key
-									form.setValue("key.value", undefined, { shouldDirty: true });
+									form.setValue("key.value" as Path<T>, undefined as never, { shouldDirty: true });
 								}
 							}}
 						>
@@ -579,7 +585,7 @@ export function ApiKeyFormFragment({ control, providerName, form }: Props) {
 
 					<FormField
 						control={control}
-						name={`key.vertex_key_config.project_id`}
+						name={"key.vertex_key_config.project_id" as Path<T>}
 						render={({ field }) => (
 							<FormItem>
 								<FormLabel>Project ID (Required)</FormLabel>
@@ -592,7 +598,7 @@ export function ApiKeyFormFragment({ control, providerName, form }: Props) {
 					/>
 					<FormField
 						control={control}
-						name={`key.vertex_key_config.project_number`}
+						name={"key.vertex_key_config.project_number" as Path<T>}
 						render={({ field }) => (
 							<FormItem>
 								<FormLabel>Project Number (Required only for fine-tuned models)</FormLabel>
@@ -605,7 +611,7 @@ export function ApiKeyFormFragment({ control, providerName, form }: Props) {
 					/>
 					<FormField
 						control={control}
-						name={`key.vertex_key_config.region`}
+						name={"key.vertex_key_config.region" as Path<T>}
 						render={({ field }) => (
 							<FormItem>
 								<FormLabel>Region (Required)</FormLabel>
@@ -620,7 +626,7 @@ export function ApiKeyFormFragment({ control, providerName, form }: Props) {
 					{vertexAuthType === "service_account_json" && (
 						<FormField
 							control={control}
-							name={`key.vertex_key_config.auth_credentials`}
+							name={"key.vertex_key_config.auth_credentials" as Path<T>}
 							render={({ field }) => (
 								<FormItem>
 									<FormLabel>Auth Credentials (Required)</FormLabel>
@@ -650,7 +656,7 @@ export function ApiKeyFormFragment({ control, providerName, form }: Props) {
 					{vertexAuthType === "api_key" && (
 						<FormField
 							control={control}
-							name={`key.value`}
+							name={"key.value" as Path<T>}
 							render={({ field }) => (
 								<FormItem>
 									<FormLabel>API Key (Supported only for gemini and fine-tuned models)</FormLabel>
@@ -669,7 +675,7 @@ export function ApiKeyFormFragment({ control, providerName, form }: Props) {
 					<Separator className="my-6" />
 					<FormField
 						control={control}
-						name="key.replicate_key_config.use_deployments_endpoint"
+						name={"key.replicate_key_config.use_deployments_endpoint" as Path<T>}
 						render={({ field }) => (
 							<FormItem className="flex flex-row items-center justify-between rounded-sm border p-2">
 								<div className="space-y-1.5">
@@ -691,7 +697,7 @@ export function ApiKeyFormFragment({ control, providerName, form }: Props) {
 					<Separator className="my-6" />
 					<FormField
 						control={control}
-						name="key.vllm_key_config.url"
+						name={"key.vllm_key_config.url" as Path<T>}
 						render={({ field }) => (
 							<FormItem>
 								<FormLabel>Server URL (Required)</FormLabel>
@@ -705,7 +711,7 @@ export function ApiKeyFormFragment({ control, providerName, form }: Props) {
 					/>
 					<FormField
 						control={control}
-						name="key.vllm_key_config.model_name"
+						name={"key.vllm_key_config.model_name" as Path<T>}
 						render={({ field }) => (
 							<FormItem>
 								<FormLabel>Model Name (Required)</FormLabel>
@@ -723,7 +729,7 @@ export function ApiKeyFormFragment({ control, providerName, form }: Props) {
 				<div className="space-y-4">
 					<FormField
 						control={control}
-						name={`key.${isOllama ? "ollama_key_config" : "sgl_key_config"}.url`}
+						name={`key.${isOllama ? "ollama_key_config" : "sgl_key_config"}.url` as Path<T>}
 						render={({ field }) => (
 							<FormItem>
 								<FormLabel>Server URL (Required)</FormLabel>
@@ -753,24 +759,24 @@ export function ApiKeyFormFragment({ control, providerName, form }: Props) {
 							value={bedrockAuthType}
 							onValueChange={(v) => {
 								setBedrockAuthType(v as "iam_role" | "explicit" | "api_key");
-								form.setValue("key.bedrock_key_config._auth_type", v, { shouldDirty: true, shouldValidate: true });
+								form.setValue("key.bedrock_key_config._auth_type" as Path<T>, v as never, { shouldDirty: true, shouldValidate: true });
 								if (v === "iam_role") {
 									// Clear explicit credentials and API key when switching to IAM Role
-									form.setValue("key.bedrock_key_config.access_key", undefined, { shouldDirty: true });
-									form.setValue("key.bedrock_key_config.secret_key", undefined, { shouldDirty: true });
-									form.setValue("key.bedrock_key_config.session_token", undefined, { shouldDirty: true });
-									form.setValue("key.value", undefined, { shouldDirty: true });
+									form.setValue("key.bedrock_key_config.access_key" as Path<T>, undefined as never, { shouldDirty: true });
+									form.setValue("key.bedrock_key_config.secret_key" as Path<T>, undefined as never, { shouldDirty: true });
+									form.setValue("key.bedrock_key_config.session_token" as Path<T>, undefined as never, { shouldDirty: true });
+									form.setValue("key.value" as Path<T>, undefined as never, { shouldDirty: true });
 								} else if (v === "explicit") {
 									// Clear API key when switching to Explicit Credentials
-									form.setValue("key.value", undefined, { shouldDirty: true });
+									form.setValue("key.value" as Path<T>, undefined as never, { shouldDirty: true });
 								} else if (v === "api_key") {
 									// Clear AWS credentials and assume-role fields when switching to API Key
-									form.setValue("key.bedrock_key_config.access_key", undefined, { shouldDirty: true });
-									form.setValue("key.bedrock_key_config.secret_key", undefined, { shouldDirty: true });
-									form.setValue("key.bedrock_key_config.session_token", undefined, { shouldDirty: true });
-									form.setValue("key.bedrock_key_config.role_arn", undefined, { shouldDirty: true });
-									form.setValue("key.bedrock_key_config.external_id", undefined, { shouldDirty: true });
-									form.setValue("key.bedrock_key_config.session_name", undefined, { shouldDirty: true });
+									form.setValue("key.bedrock_key_config.access_key" as Path<T>, undefined as never, { shouldDirty: true });
+									form.setValue("key.bedrock_key_config.secret_key" as Path<T>, undefined as never, { shouldDirty: true });
+									form.setValue("key.bedrock_key_config.session_token" as Path<T>, undefined as never, { shouldDirty: true });
+									form.setValue("key.bedrock_key_config.role_arn" as Path<T>, undefined as never, { shouldDirty: true });
+									form.setValue("key.bedrock_key_config.external_id" as Path<T>, undefined as never, { shouldDirty: true });
+									form.setValue("key.bedrock_key_config.session_name" as Path<T>, undefined as never, { shouldDirty: true });
 								}
 							}}
 						>
@@ -798,7 +804,7 @@ export function ApiKeyFormFragment({ control, providerName, form }: Props) {
 						<>
 							<FormField
 								control={control}
-								name={`key.bedrock_key_config.access_key`}
+								name={"key.bedrock_key_config.access_key" as Path<T>}
 								render={({ field }) => (
 									<FormItem>
 										<FormLabel>Access Key (Required)</FormLabel>
@@ -811,7 +817,7 @@ export function ApiKeyFormFragment({ control, providerName, form }: Props) {
 							/>
 							<FormField
 								control={control}
-								name={`key.bedrock_key_config.secret_key`}
+								name={"key.bedrock_key_config.secret_key" as Path<T>}
 								render={({ field }) => (
 									<FormItem>
 										<FormLabel>Secret Key (Required)</FormLabel>
@@ -824,7 +830,7 @@ export function ApiKeyFormFragment({ control, providerName, form }: Props) {
 							/>
 							<FormField
 								control={control}
-								name={`key.bedrock_key_config.session_token`}
+								name={"key.bedrock_key_config.session_token" as Path<T>}
 								render={({ field }) => (
 									<FormItem>
 										<FormLabel>Session Token (Optional)</FormLabel>
@@ -841,7 +847,7 @@ export function ApiKeyFormFragment({ control, providerName, form }: Props) {
 					{bedrockAuthType === "api_key" && (
 						<FormField
 							control={control}
-							name={`key.value`}
+							name={"key.value" as Path<T>}
 							render={({ field }) => (
 								<FormItem>
 									<FormLabel>API Key</FormLabel>
@@ -861,7 +867,7 @@ export function ApiKeyFormFragment({ control, providerName, form }: Props) {
 
 					<FormField
 						control={control}
-						name={`key.bedrock_key_config.region`}
+						name={"key.bedrock_key_config.region" as Path<T>}
 						render={({ field }) => (
 							<FormItem>
 								<FormLabel>Region (Required)</FormLabel>
@@ -876,7 +882,7 @@ export function ApiKeyFormFragment({ control, providerName, form }: Props) {
 						<>
 							<FormField
 								control={control}
-								name={`key.bedrock_key_config.role_arn`}
+								name={"key.bedrock_key_config.role_arn" as Path<T>}
 								render={({ field }) => (
 									<FormItem>
 										<FormLabel>Assume Role ARN (Optional)</FormLabel>
@@ -896,7 +902,7 @@ export function ApiKeyFormFragment({ control, providerName, form }: Props) {
 							/>
 							<FormField
 								control={control}
-								name={`key.bedrock_key_config.external_id`}
+								name={"key.bedrock_key_config.external_id" as Path<T>}
 								render={({ field }) => (
 									<FormItem>
 										<FormLabel>External ID (Optional)</FormLabel>
@@ -914,7 +920,7 @@ export function ApiKeyFormFragment({ control, providerName, form }: Props) {
 							/>
 							<FormField
 								control={control}
-								name={`key.bedrock_key_config.session_name`}
+								name={"key.bedrock_key_config.session_name" as Path<T>}
 								render={({ field }) => (
 									<FormItem>
 										<FormLabel>Session Name (Optional)</FormLabel>
@@ -934,7 +940,7 @@ export function ApiKeyFormFragment({ control, providerName, form }: Props) {
 					)}
 					<FormField
 						control={control}
-						name={`key.bedrock_key_config.arn`}
+						name={"key.bedrock_key_config.arn" as Path<T>}
 						render={({ field }) => (
 							<FormItem>
 								<FormLabel>ARN (Optional)</FormLabel>

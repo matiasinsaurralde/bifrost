@@ -37,7 +37,7 @@ import { ChevronLeft, ChevronRight, Info } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { getErrorMessage, useReauthMCPSessionMutation, useRevokeMCPSessionMutation } from "@/lib/store";
 import { MCPSessionRow } from "@/lib/types/mcpSessions";
-import { ExternalLink, Fingerprint, KeyRound, Loader2, MoreHorizontal, Pencil, RefreshCcw, Trash2, UserRound } from "lucide-react";
+import { ExternalLink, FingerprintPattern, KeyRound, Loader2, MoreHorizontal, Pencil, RefreshCcw, Trash2, UserRound } from "lucide-react";
 import { useState } from "react";
 import SessionsFilterBar from "./sessionsFilterBar";
 
@@ -329,7 +329,7 @@ function BindingCell({ row }: { row: MCPSessionRow }) {
 	if (row.auth_mode === "session" && row.session_id) {
 		return (
 			<div className="flex items-center gap-1.5 text-sm">
-				<Fingerprint className="text-muted-foreground size-3.5" />
+				<FingerprintPattern className="text-muted-foreground size-3.5" />
 				<span className="font-mono">{row.session_id}</span>
 			</div>
 		);

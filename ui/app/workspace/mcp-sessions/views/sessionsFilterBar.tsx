@@ -11,7 +11,7 @@
 import { Button } from "@/components/ui/button";
 import { ComboboxSelect } from "@/components/ui/combobox";
 import { Input } from "@/components/ui/input";
-import { Fingerprint, KeyRound, Search, UserRound, X } from "lucide-react";
+import { FingerprintPattern, KeyRound, Search, UserRound, X } from "lucide-react";
 
 // Labels mirror the Type column's TypeBadge ("OAuth" / "Headers") so the
 // filter vocabulary matches what the user sees in the table.
@@ -33,7 +33,7 @@ const STATUS_OPTIONS = [
 const AUTH_MODE_OPTIONS = [
 	{ label: "User", value: "user", icon: <UserRound className="size-3.5" /> },
 	{ label: "Virtual key", value: "vk", icon: <KeyRound className="size-3.5" /> },
-	{ label: "Session", value: "session", icon: <Fingerprint className="size-3.5" /> },
+	{ label: "Session", value: "session", icon: <FingerprintPattern className="size-3.5" /> },
 ];
 
 export interface SessionsFilterBarProps {
