@@ -207,7 +207,7 @@ export function NetworkFormFragment({ provider }: NetworkFormFragmentProps) {
 												}}
 											/>
 										</FormControl>
-										<FormDescription>{secondsToHumanReadable(field.value)}</FormDescription>
+										<FormDescription>{secondsToHumanReadable(field.value ?? 0)}</FormDescription>
 										<FormMessage />
 									</FormItem>
 								)}

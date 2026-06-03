@@ -7,10 +7,10 @@ import { BaseProvider, RequestType } from "@/lib/types/config";
 import { isRequestTypeDisabled } from "@/lib/utils/validation";
 import { Settings2 } from "lucide-react";
 import { useEffect, useMemo } from "react";
-import { Control, useFormContext } from "react-hook-form";
+import { Control, FieldValues, Path, useFormContext } from "react-hook-form";
 
-interface AllowedRequestsFieldsProps {
-	control: Control<any>;
+interface AllowedRequestsFieldsProps<T extends FieldValues = FieldValues> {
+	control: Control<T>;
 	namePrefix?: string;
 	pathOverridesPrefix?: string;
 	providerType?: BaseProvider;
@@ -83,13 +83,13 @@ const RequestTypes: Array<{ key: RequestType; label: string }> = [
 	{ key: "count_tokens", label: "Count Tokens" },
 ];
 
-export function AllowedRequestsFields({
+export function AllowedRequestsFields<T extends FieldValues = FieldValues>({
 	control,
 	namePrefix = "allowed_requests",
 	pathOverridesPrefix = "request_path_overrides",
 	providerType,
 	disabled = false,
-}: AllowedRequestsFieldsProps) {
+}: AllowedRequestsFieldsProps<T>) {
 	const leftColumn = RequestTypes.slice(0, RequestTypes.length / 2);
 	const rightColumn = RequestTypes.slice(RequestTypes.length / 2);
 	const { getValues, setValue } = useFormContext();
@@ -112,7 +112,7 @@ export function AllowedRequestsFields({
 			<FormField
 				key={requestType.key}
 				control={control}
-				name={`${namePrefix}.${requestType.key}`}
+				name={`${namePrefix}.${requestType.key}` as Path<T>}
 				render={({ field: allowedField }) => (
 					<FormItem
 						className={`flex flex-row items-center justify-between rounded-lg border p-3 ${isDisabled ? "bg-muted/30 opacity-60" : ""}`}
@@ -125,7 +125,7 @@ export function AllowedRequestsFields({
 							{allowedField.value && !isDisabled && !isPathOverrideDisabled && !disabled && (
 								<FormField
 									control={control}
-									name={`${pathOverridesPrefix}.${requestType.key}`}
+									name={`${pathOverridesPrefix}.${requestType.key}` as Path<T>}
 									render={({ field: pathField }) => (
 										<Popover>
 											<PopoverTrigger asChild>
